@@ -1,27 +1,36 @@
 // create web server
-// start server: node comments.js
-// test in browser: http://localhost:8080/comments
+const express = require('express');
+const bodyParser = require('body-parser');
+const { randomBytes } = require('crypto');
+const cors = require('cors');
+// const axios = require('axios');
 
-var http = require('http');
-var fs = require('fs');
+// create express app
+const app = express();
+app.use(bodyParser.json());
+app.use(cors());
 
-// create server
-http.createServer(function (req, res) {
+const commentsByPostId = {};
 
-    // open and read in htm file
-    fs.readFile('comments.htm', function(err, data) {
+// routes
+app.get('/posts/:id/comments', (req, res) => {
+  res.send(commentsByPostId[req.params.id] || []);
+});
 
-        // write HTTP header
-        res.writeHead(200, {'Content-Type': 'text/html'});
+// create comment
+app.post('/posts/:id/comments', (req, res) => {
+  const commentId = randomBytes(4).toString('hex'); // generate random id
+  const { content } = req.body; // get content from request body
+  const comments = commentsByPostId[req.params.id] || []; // get comments from post id
 
-        // write data to body of response
-        res.write(data);
+  comments.push({ id: commentId, content, status: 'pending' }); // push comment to comments
 
-        // end response
-        res.end();
-    });
+  commentsByPostId[req.params.id] = comments; // set comments to commentsByPostId
 
-}).listen(8080); // listen on port 8080
+  res.status(201).send(comments); // send response
+});
 
-// console will print message
-console.log('Server running at http://
+// listen to port
+app.listen(4001, () => {
+  console.log('Listening on 4001');
+});
