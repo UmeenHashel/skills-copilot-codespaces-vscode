@@ -1,50 +1,27 @@
 // create web server
-var express = require('express');
-var router = express.Router();
+// start server: node comments.js
+// test in browser: http://localhost:8080/comments
 
-var mongoose = require('mongoose');
-var Comments = require('../models/comments.js');
+var http = require('http');
+var fs = require('fs');
 
-// GET all comments
-router.get('/', function(req, res, next) {
-  Comments.find(function (err, comments) {
-    if (err) return next(err);
-    res.json(comments);
-  });
-});
+// create server
+http.createServer(function (req, res) {
 
-// GET comments by id
-router.get('/:id', function(req, res, next) {
-  Comments.findById(req.params.id, function (err, comments) {
-    if (err) return next(err);
-    res.json(comments);
-  });
-});
+    // open and read in htm file
+    fs.readFile('comments.htm', function(err, data) {
 
-// POST comments
-router.post('/', function(req, res, next) {
-  Comments.create(req.body, function (err, comments) {
-    if (err) return next(err);
-    res.json(comments);
-  });
-});
+        // write HTTP header
+        res.writeHead(200, {'Content-Type': 'text/html'});
 
-// PUT comments
-router.put('/:id', function(req, res, next) {
-  Comments.findByIdAndUpdate(req.params.id, req.body, function (err, comments) {
-    if (err) return next(err);
-    res.json(comments);
-  });
-});
+        // write data to body of response
+        res.write(data);
 
-// DELETE comments
-router.delete('/:id', function(req, res, next) {
-  Comments.findByIdAndRemove(req.params.id, req.body, function (err, comments) {
-    if (err) return next(err);
-    res.json(comments);
-  });
-});
+        // end response
+        res.end();
+    });
 
-module.exports = router;
+}).listen(8080); // listen on port 8080
 
-
+// console will print message
+console.log('Server running at http://
