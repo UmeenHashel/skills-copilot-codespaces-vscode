@@ -1,34 +1,64 @@
 // create web server
 
-var express = require('express');
-var app = express();
-var bodyParser = require('body-parser');
-var urlencodedParser = bodyParser.urlencoded({extended: false});
-var fs = require('fs');
+const express = require('express');
+const router = express.Router();
+const Comment = require('../models/comment');
+const passport = require('passport');
+const jwt = require('jsonwebtoken');
+const config = require('../config/database');
 
-// set up template engine
-app.set('view engine', 'ejs');
+// Add comment
+router.post('/add', (req, res, next) => {
+    let newComment = new Comment({
+        comment: req.body.comment,
+        username: req.body.username
+    });
 
-// static files
-app.use(express.static('./public'));
-
-// fire function
-app.listen(3000);
-console.log('You are listening to port 3000');
-
-// get request
-app.get('/', function(req, res){
-  res.render('index');
+    Comment.addComment(newComment, (err, comment) => {
+        if (err) {
+            res.json({ success: false, msg: 'Failed to add comment' });
+        } else {
+            res.json({ success: true, msg: 'Comment added' });
+        }
+    });
 });
 
-// post request
-app.post('/', urlencodedParser, function(req, res){
-  // get data from the view and add it to mongodb
-  var newComment = req.body;
-  console.log(newComment);
-  fs.writeFile('comments.txt', JSON.stringify(newComment), function(err){
-    if (err) throw err;
-    console.log('Saved!');
-  });
-  res.render('success', {data: newComment});
+// Get all comments
+router.get('/all', (req, res, next) => {
+    Comment.getAllComments((err, comments) => {
+        if (err) throw err;
+        res.json(comments);
+    });
 });
+
+// Get comment by ID
+router.get('/:id', (req, res, next) => {
+    Comment.getCommentById(req.params.id, (err, comment) => {
+        if (err) throw err;
+        res.json(comment);
+    });
+});
+
+// Delete comment
+router.delete('/:id', (req, res, next) => {
+    Comment.deleteComment(req.params.id, (err, comment) => {
+        if (err) throw err;
+        res.json(comment);
+    });
+});
+
+// Update comment
+router.put('/:id', (req, res, next) => {
+    let updatedComment = new Comment({
+        comment: req.body.comment,
+        username: req.body.username
+    });
+
+    Comment.updateComment(req.params.id, updatedComment, (err, comment) => {
+        if (err) throw err;
+        res.json(comment);
+    });
+});
+
+module.exports = router;
+
