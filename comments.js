@@ -1,64 +1,15 @@
-// create web server
+// Create web server
+// 1. npm install express
+// 2. node comments.js
+// 3. Open browser and go to localhost:3000
 
-const express = require('express');
-const router = express.Router();
-const Comment = require('../models/comment');
-const passport = require('passport');
-const jwt = require('jsonwebtoken');
-const config = require('../config/database');
+var express = require('express');
+var app = express();
 
-// Add comment
-router.post('/add', (req, res, next) => {
-    let newComment = new Comment({
-        comment: req.body.comment,
-        username: req.body.username
-    });
-
-    Comment.addComment(newComment, (err, comment) => {
-        if (err) {
-            res.json({ success: false, msg: 'Failed to add comment' });
-        } else {
-            res.json({ success: true, msg: 'Comment added' });
-        }
-    });
+app.get('/comments', function(req, res) {
+    res.send('Hello World!');
 });
 
-// Get all comments
-router.get('/all', (req, res, next) => {
-    Comment.getAllComments((err, comments) => {
-        if (err) throw err;
-        res.json(comments);
-    });
+app.listen(3000, function() {
+    console.log('Example app listening on port 3000!');
 });
-
-// Get comment by ID
-router.get('/:id', (req, res, next) => {
-    Comment.getCommentById(req.params.id, (err, comment) => {
-        if (err) throw err;
-        res.json(comment);
-    });
-});
-
-// Delete comment
-router.delete('/:id', (req, res, next) => {
-    Comment.deleteComment(req.params.id, (err, comment) => {
-        if (err) throw err;
-        res.json(comment);
-    });
-});
-
-// Update comment
-router.put('/:id', (req, res, next) => {
-    let updatedComment = new Comment({
-        comment: req.body.comment,
-        username: req.body.username
-    });
-
-    Comment.updateComment(req.params.id, updatedComment, (err, comment) => {
-        if (err) throw err;
-        res.json(comment);
-    });
-});
-
-module.exports = router;
-
