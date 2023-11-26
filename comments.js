@@ -1,36 +1,34 @@
 // create web server
-const express = require('express');
-const bodyParser = require('body-parser');
-const { randomBytes } = require('crypto');
-const cors = require('cors');
-// const axios = require('axios');
 
-// create express app
-const app = express();
-app.use(bodyParser.json());
-app.use(cors());
+var express = require('express');
+var app = express();
+var bodyParser = require('body-parser');
+var urlencodedParser = bodyParser.urlencoded({extended: false});
+var fs = require('fs');
 
-const commentsByPostId = {};
+// set up template engine
+app.set('view engine', 'ejs');
 
-// routes
-app.get('/posts/:id/comments', (req, res) => {
-  res.send(commentsByPostId[req.params.id] || []);
+// static files
+app.use(express.static('./public'));
+
+// fire function
+app.listen(3000);
+console.log('You are listening to port 3000');
+
+// get request
+app.get('/', function(req, res){
+  res.render('index');
 });
 
-// create comment
-app.post('/posts/:id/comments', (req, res) => {
-  const commentId = randomBytes(4).toString('hex'); // generate random id
-  const { content } = req.body; // get content from request body
-  const comments = commentsByPostId[req.params.id] || []; // get comments from post id
-
-  comments.push({ id: commentId, content, status: 'pending' }); // push comment to comments
-
-  commentsByPostId[req.params.id] = comments; // set comments to commentsByPostId
-
-  res.status(201).send(comments); // send response
-});
-
-// listen to port
-app.listen(4001, () => {
-  console.log('Listening on 4001');
+// post request
+app.post('/', urlencodedParser, function(req, res){
+  // get data from the view and add it to mongodb
+  var newComment = req.body;
+  console.log(newComment);
+  fs.writeFile('comments.txt', JSON.stringify(newComment), function(err){
+    if (err) throw err;
+    console.log('Saved!');
+  });
+  res.render('success', {data: newComment});
 });
